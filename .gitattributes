@@ -1,0 +1,3 @@
+# Preserve the exact bytes covered by the source manifest.
+* -text
+*.lean linguist-language=Lean

@@ -1,0 +1,12 @@
+.lake/
+.elan/
+__pycache__/
+*.pyc
+*.olean
+*.ilean
+*.olean.*
+*.trace
+*.hash
+/audit.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "Please cite this formalization and the accompanying article when using these proofs."
+type: software
+title: "Lean formalization of the ambient Jung bound in dimensions 4k+1"
+authors:
+  - family-names: "Li"
+    given-names: "Xiao"
+abstract: >-
+  A Lean formalization of the ambient Jung upper bound in every dimension
+  4k+1 for k at least one, including arbitrary nonempty sets of real points
+  and an explicit sharpness witness in dimension five.
+keywords:
+  - Lean
+  - formal proof
+  - Jung constant
+  - Manhattan distance
+  - cut metric
