@@ -1,0 +1,336 @@
+@[reducible] def Jung5.Point : Type :=
+Fin 5 → ℝ
+def Jung5.l1Dist : Jung5.Point → Jung5.Point → ℝ :=
+fun x y => ∑ k, abs.{0} (HSub.hSub.{0, 0, 0} (x k) (y k))
+def Jung5.UnitFiniteEnclosing : Prop :=
+∀ (X : Finset.{0} Jung5.Point),
+  Finset.Nonempty.{0} X →
+    (∀ (x : Jung5.Point),
+        Membership.mem.{0, 0} X x → ∀ (y : Jung5.Point), Membership.mem.{0, 0} X y → LE.le.{0} (Jung5.l1Dist x y) 1) →
+      ∃ c, ∀ (x : Jung5.Point), Membership.mem.{0, 0} X x → LE.le.{0} (Jung5.l1Dist x c) (3 / 4)
+@[reducible] def Jung5.Cut : Type :=
+Subtype.{1} fun s => 0 ∉ s
+def Jung5.minShore : Jung5.Cut → ℕ :=
+fun c => min.{0} (Finset.card.{0} ↑c) (HSub.hSub.{0, 0, 0} 6 (Finset.card.{0} ↑c))
+def Jung5.separates : Jung5.Cut → Fin 6 → Fin 6 → Prop :=
+fun c i j => Membership.mem.{0, 0} (↑c) i ∧ j ∉ ↑c ∨ Membership.mem.{0, 0} (↑c) j ∧ i ∉ ↑c
+def Jung5.balancedSupport : (Jung5.Cut → ℝ) → Finset.{0} Jung5.Cut :=
+fun w => {c | Eq.{1} (Finset.card.{0} ↑c) 3 ∧ Ne.{1} (w c) 0}
+def Jung5.sharpPoint : Fin 4 → Jung5.Point :=
+fun i k =>
+  ite.{1} (Eq.{1} k 0) (ite.{1} (Eq.{1} i 0 ∨ Eq.{1} i 1) (1 / 4) (Neg.neg.{0} (1 / 4)))
+    (ite.{1} (Eq.{1} k 1) (ite.{1} (Eq.{1} i 0 ∨ Eq.{1} i 2) (1 / 4) (Neg.neg.{0} (1 / 4)))
+      (ite.{1} (Eq.{1} k 2) (ite.{1} (Eq.{1} i 0 ∨ Eq.{1} i 3) (1 / 4) (Neg.neg.{0} (1 / 4))) 0))
+Jung5.jung_l1_five (X : Set.{0} Jung5.Point) (hne : Set.Nonempty.{0} X) (D : ℝ) (hD : LE.le.{0} 0 D)
+  (hdiam :
+    ∀ (x : Jung5.Point),
+      Membership.mem.{0, 0} X x → ∀ (y : Jung5.Point), Membership.mem.{0, 0} X y → LE.le.{0} (Jung5.l1Dist x y) D) :
+  ∃ c,
+    ∀ (x : Jung5.Point),
+      Membership.mem.{0, 0} X x → LE.le.{0} (Jung5.l1Dist x c) (HDiv.hDiv.{0, 0, 0} (HMul.hMul.{0, 0, 0} 3 D) 4)
+Jung5.jung_l1_five_explicit (X : Set.{0} (Fin 5 → ℝ)) (hne : Set.Nonempty.{0} X) (D : ℝ) (hD : LE.le.{0} 0 D)
+  (hdiam :
+    ∀ (x : Fin 5 → ℝ),
+      Membership.mem.{0, 0} X x →
+        ∀ (y : Fin 5 → ℝ), Membership.mem.{0, 0} X y → LE.le.{0} (∑ k, abs.{0} (HSub.hSub.{0, 0, 0} (x k) (y k))) D) :
+  ∃ c,
+    ∀ (x : Fin 5 → ℝ),
+      Membership.mem.{0, 0} X x →
+        LE.le.{0} (∑ k, abs.{0} (HSub.hSub.{0, 0, 0} (x k) (c k))) (HDiv.hDiv.{0, 0, 0} (HMul.hMul.{0, 0, 0} 3 D) 4)
+theorem Jung5.jung_l1_five_explicit : ∀ (X : Set.{0} (Fin 5 → ℝ)),
+  Set.Nonempty.{0} X →
+    ∀ (D : ℝ),
+      LE.le.{0} 0 D →
+        (∀ (x : Fin 5 → ℝ),
+            Membership.mem.{0, 0} X x →
+              ∀ (y : Fin 5 → ℝ),
+                Membership.mem.{0, 0} X y → LE.le.{0} (∑ k, abs.{0} (HSub.hSub.{0, 0, 0} (x k) (y k))) D) →
+          ∃ c,
+            ∀ (x : Fin 5 → ℝ),
+              Membership.mem.{0, 0} X x →
+                LE.le.{0} (∑ k, abs.{0} (HSub.hSub.{0, 0, 0} (x k) (c k)))
+                  (HDiv.hDiv.{0, 0, 0} (HMul.hMul.{0, 0, 0} 3 D) 4) :=
+fun X hne D hD hdiam => Jung5.jung_l1_five X hne D hD hdiam
+Jung5.jung_l1_five_sharp :
+  (∀ (i j : Fin 4), Ne.{1} i j → Eq.{1} (Jung5.l1Dist (Jung5.sharpPoint i) (Jung5.sharpPoint j)) 1) ∧
+    (∀ (i : Fin 4), Eq.{1} (Jung5.l1Dist (Jung5.sharpPoint i) 0) (3 / 4)) ∧
+      ∀ (c : Jung5.Point), ∃ i, LE.le.{0} (3 / 4) (Jung5.l1Dist (Jung5.sharpPoint i) c)
+Jung5.unit_finite_enclosing : Jung5.UnitFiniteEnclosing
+Jung5.finite_contact_reduction (X : Finset.{0} Jung5.Point) (hne : Finset.Nonempty.{0} X)
+  (hdiam :
+    ∀ (x : Jung5.Point),
+      Membership.mem.{0, 0} X x → ∀ (y : Jung5.Point), Membership.mem.{0, 0} X y → LE.le.{0} (Jung5.l1Dist x y) 1) :
+  (∃ c, ∀ (x : Jung5.Point), Membership.mem.{0, 0} X x → LE.le.{0} (Jung5.l1Dist x c) (3 / 4)) ∨
+    ∃ p,
+      (∀ (i : Fin 6), Membership.mem.{0, 0} X (p i)) ∧
+        ∀ (m : Jung5.Point), LT.lt.{0} (9 / 2) (∑ i, Jung5.l1Dist (p i) m)
+Jung5.contact_six_active_family (X : Finset.{0} Jung5.Point) (hne : Finset.Nonempty.{0} X) (c : Jung5.Point)
+  (hmin : ∀ (m : Jung5.Point), LE.le.{0} (Jung5.contactRadius X hne c) (Jung5.contactRadius X hne m)) :
+  ∃ p s w,
+    (∀ (i : Fin 6), Membership.mem.{0, 0} X (p i)) ∧
+      (∀ (i : Fin 6), Jung5.IsSign (s i)) ∧
+        (∀ (i : Fin 6), LE.le.{0} 0 (w i)) ∧
+          Eq.{1} (∑ i, w i) 1 ∧
+            (∀ (k : Fin 5), Eq.{1} (∑ i, HMul.hMul.{0, 0, 0} (w i) (s i k)) 0) ∧
+              ∀ (i : Fin 6), Eq.{1} (Jung5.signDot (s i) (HSub.hSub.{0, 0, 0} (p i) c)) (Jung5.contactRadius X hne c)
+Jung5.contact_active_convex_balance (X : Finset.{0} Jung5.Point) (hne : Finset.Nonempty.{0} X) (c : Jung5.Point)
+  (hmin : ∀ (m : Jung5.Point), LE.le.{0} (Jung5.contactRadius X hne c) (Jung5.contactRadius X hne m)) :
+  Membership.mem.{0, 0} ((convexHull.{0, 0} ℝ) ↑(Jung5.contactActiveVectors X hne c)) 0
+Jung5.exists_contact_minimizer (X : Finset.{0} Jung5.Point) (hne : Finset.Nonempty.{0} X) :
+  ∃ c, ∀ (m : Jung5.Point), LE.le.{0} (Jung5.contactRadius X hne c) (Jung5.contactRadius X hne m)
+Jung5.six_contact_obstruction (p s : Fin 6 → Jung5.Point) (w : Fin 6 → ℝ) (c : Jung5.Point) (R : ℝ)
+  (hs : ∀ (i : Fin 6), Jung5.IsSign (s i)) (hw : ∀ (i : Fin 6), LE.le.{0} 0 (w i)) (hsum : Eq.{1} (∑ i, w i) 1)
+  (hbal : ∀ (k : Fin 5), Eq.{1} (∑ i, HMul.hMul.{0, 0, 0} (w i) (s i k)) 0)
+  (hactive : ∀ (i : Fin 6), Eq.{1} (Jung5.signDot (s i) (HSub.hSub.{0, 0, 0} (p i) c)) R)
+  (hdiam : ∀ (i j : Fin 6), LE.le.{0} (Jung5.l1Dist (p i) (p j)) 1) (hR : LT.lt.{0} (3 / 4) R) (m : Jung5.Point) :
+  LT.lt.{0} (9 / 2) (∑ i, Jung5.l1Dist (p i) m)
+Jung5.six_point_median_bound (p : Fin 6 → Jung5.Point)
+  (hdiam : ∀ (i j : Fin 6), LE.le.{0} (Jung5.l1Dist (p i) (p j)) 1) : ∃ m, LE.le.{0} (∑ i, Jung5.l1Dist (p i) m) (9 / 2)
+Jung5.Gap.weight_distance (p : Fin 6 → Jung5.Point) (i j : Fin 6) :
+  Eq.{1} (∑ c, ite.{1} (Jung5.separates c i j) (Jung5.Gap.weight p c) 0) (Jung5.l1Dist (p i) (p j))
+Jung5.Gap.weight_objective (p : Fin 6 → Jung5.Point) :
+  Eq.{1} (∑ c, HMul.hMul.{0, 0, 0} (Jung5.Gap.weight p c) ↑(Jung5.minShore c))
+    (∑ i, Jung5.l1Dist (p i) (Jung5.Gap.median p))
+Jung5.Gap.balancedSupport_card (p : Fin 6 → Jung5.Point) :
+  LE.le.{0} (Finset.card.{0} (Jung5.balancedSupport (Jung5.Gap.weight p))) 5
+Jung5.cut_weight_bound (w : Jung5.Cut → ℝ) (hw : ∀ (c : Jung5.Cut), LE.le.{0} 0 (w c))
+  (hdiam : ∀ (i j : Fin 6), LE.le.{0} (∑ c, ite.{1} (Jung5.separates c i j) (w c) 0) 1)
+  (hsupport : LE.le.{0} (Finset.card.{0} (Jung5.balancedSupport w)) 5) :
+  LE.le.{0} (∑ c, HMul.hMul.{0, 0, 0} (w c) ↑(Jung5.minShore c)) (9 / 2)
+Jung5.CutCertificate.finite_certificate (s : Finset.{0} (Fin 10)) :
+  LE.le.{0} (Finset.card.{0} s) 5 →
+    LE.le.{0} (∑ e, Jung5.CutCertificate.coefficient s e) 270 ∧
+      ∀ (c : Jung5.Cut),
+        (Ne.{1} (Finset.card.{0} ↑c) 3 ∨
+            ∃ i, Membership.mem.{0, 0} s i ∧ Eq.{1} (Jung5.CutCertificate.balancedCut i) c) →
+          LE.le.{0} (HMul.hMul.{0, 0, 0} 60 (Jung5.minShore c)) (Jung5.CutCertificate.capacity s c)
+Jung5.CutCertificate.balancedCut_coverage (c : Jung5.Cut) :
+  Eq.{1} (Finset.card.{0} ↑c) 3 → ∃ i, Eq.{1} (Jung5.CutCertificate.balancedCut i) c
+Jung5.finite_enclosing_scaled (hunit : Jung5.UnitFiniteEnclosing) (D : ℝ) (hD : LE.le.{0} 0 D)
+  (X : Finset.{0} Jung5.Point) (hne : Finset.Nonempty.{0} X)
+  (hdiam :
+    ∀ (x : Jung5.Point),
+      Membership.mem.{0, 0} X x → ∀ (y : Jung5.Point), Membership.mem.{0, 0} X y → LE.le.{0} (Jung5.l1Dist x y) D) :
+  ∃ c,
+    ∀ (x : Jung5.Point),
+      Membership.mem.{0, 0} X x → LE.le.{0} (Jung5.l1Dist x c) (HDiv.hDiv.{0, 0, 0} (HMul.hMul.{0, 0, 0} 3 D) 4)
+Jung5.enclosing_all_sets_of_unit_finite (hunit : Jung5.UnitFiniteEnclosing) (X : Set.{0} Jung5.Point)
+  (hne : Set.Nonempty.{0} X) (D : ℝ) (hD : LE.le.{0} 0 D)
+  (hdiam :
+    ∀ (x : Jung5.Point),
+      Membership.mem.{0, 0} X x → ∀ (y : Jung5.Point), Membership.mem.{0, 0} X y → LE.le.{0} (Jung5.l1Dist x y) D) :
+  ∃ c,
+    ∀ (x : Jung5.Point),
+      Membership.mem.{0, 0} X x → LE.le.{0} (Jung5.l1Dist x c) (HDiv.hDiv.{0, 0, 0} (HMul.hMul.{0, 0, 0} 3 D) 4)
+Jung5.sharpness_witness :
+  (∀ (i j : Fin 4), Ne.{1} i j → Eq.{1} (Jung5.l1Dist (Jung5.sharpPoint i) (Jung5.sharpPoint j)) 1) ∧
+    (∀ (i : Fin 4), Eq.{1} (Jung5.l1Dist (Jung5.sharpPoint i) 0) (3 / 4)) ∧
+      ∀ (c : Jung5.Point), ∃ i, LE.le.{0} (3 / 4) (Jung5.l1Dist (Jung5.sharpPoint i) c)
+Jung5.sharpPoint_radius_lower (c : Jung5.Point) : ∃ i, LE.le.{0} (3 / 4) (Jung5.l1Dist (Jung5.sharpPoint i) c)
+'Jung5.l1Dist_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.l1Dist_self' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.l1Dist_symm' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.l1Dist_triangle' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.abs_coordinate_sub_le' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.l1Dist_scale' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.signDot_sub' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.signDot_add' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.signDot_le_l1Dist' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.weighted_signDot_zero' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_weight_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.sum_contacts_lower_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.six_uniform_balance' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.six_contact_obstruction' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contactSignVector_isSign' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_norming_identity' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_distance_le_radius' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_radius_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.continuous_contact_distance' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.continuous_contact_radius' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.exists_contact_minimizer' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.signDot_smul' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_form_motion' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_common_step' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_strict_descent' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contactActiveVector_spec' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contactActiveVector_mem' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_dual_vector' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_active_convex_balance' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_sum_embedding' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.contact_six_active_family' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.finite_contact_reduction' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.stepGap_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.ordered_pair' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.ordered_median' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.mem_rawPrefix' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.card_rawPrefix' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.canonical_separates' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.canonicalPrefix_separates' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.canonicalPrefix_minShore' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.canonicalPrefix_balanced' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.orderedCoord_monotone' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.coordGap_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.coord_pair' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.coord_median' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.weight_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.weight_eval' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.weight_distance' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.weight_objective' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.balancedSupport_subset' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.Gap.balancedSupport_card' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.six_point_median_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.CutCertificate.balancedCut_card' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.CutCertificate.balancedCut_injective' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.CutCertificate.balancedCut_coverage' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.CutCertificate.finite_certificate' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.cut_weight_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.finite_enclosing_scaled' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.continuous_l1Dist_center' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.isClosed_l1_center_constraint' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.isCompact_l1_center_constraint' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.enclosing_all_sets_of_unit_finite' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.sharpPoint_pair' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.sharpPoint_diameter_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.sharpPoint_zero_radius' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.opposite_quarters' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.sharpPoint_sum_lower' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.sharpPoint_radius_lower' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.sharpness_witness' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.unit_finite_enclosing' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.jung_l1_five' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.jung_l1_five_explicit' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung5.jung_l1_five_sharp' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+@[reducible] def Jung.Point : ℕ → Type :=
+fun d => Fin d → ℝ
+def Jung.l1Dist : {d : ℕ} → Jung.Point d → Jung.Point d → ℝ :=
+fun {d} x y => ∑ k, abs.{0} (HSub.hSub.{0, 0, 0} (x k) (y k))
+def Jung.coefficient : ℕ → ℝ :=
+fun k => HDiv.hDiv.{0, 0, 0} (HSub.hSub.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 ↑k) 1) (HMul.hMul.{0, 0, 0} 4 ↑k)
+Jung.jung_l1_four_k_plus_one (k : ℕ) (hk : LE.le.{0} 2 k)
+  (X : Set.{0} (Jung.Point (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1))) (hne : Set.Nonempty.{0} X) (D : ℝ)
+  (hD : LE.le.{0} 0 D)
+  (hdiam :
+    ∀ (x : Jung.Point (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1)),
+      Membership.mem.{0, 0} X x →
+        ∀ (y : Jung.Point (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1)),
+          Membership.mem.{0, 0} X y → LE.le.{0} (Jung.l1Dist x y) D) :
+  ∃ c,
+    ∀ (x : Jung.Point (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1)),
+      Membership.mem.{0, 0} X x → LE.le.{0} (Jung.l1Dist x c) (HMul.hMul.{0, 0, 0} (Jung.coefficient k) D)
+Jung.jung_l1_four_k_plus_one_all (k : ℕ) (hk : LE.le.{0} 1 k)
+  (X : Set.{0} (Jung.Point (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1))) (hne : Set.Nonempty.{0} X) (D : ℝ)
+  (hD : LE.le.{0} 0 D)
+  (hdiam :
+    ∀ (x : Jung.Point (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1)),
+      Membership.mem.{0, 0} X x →
+        ∀ (y : Jung.Point (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1)),
+          Membership.mem.{0, 0} X y → LE.le.{0} (Jung.l1Dist x y) D) :
+  ∃ c,
+    ∀ (x : Jung.Point (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1)),
+      Membership.mem.{0, 0} X x → LE.le.{0} (Jung.l1Dist x c) (HMul.hMul.{0, 0, 0} (Jung.coefficient k) D)
+Jung.jung_l1_four_k_plus_one_explicit (k : ℕ) (hk : LE.le.{0} 1 k)
+  (X : Set.{0} (Fin (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1) → ℝ)) (hne : Set.Nonempty.{0} X) (D : ℝ)
+  (hD : LE.le.{0} 0 D)
+  (hdiam :
+    ∀ (x : Fin (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1) → ℝ),
+      Membership.mem.{0, 0} X x →
+        ∀ (y : Fin (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1) → ℝ),
+          Membership.mem.{0, 0} X y → LE.le.{0} (∑ j, abs.{0} (HSub.hSub.{0, 0, 0} (x j) (y j))) D) :
+  ∃ c,
+    ∀ (x : Fin (HAdd.hAdd.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 k) 1) → ℝ),
+      Membership.mem.{0, 0} X x →
+        LE.le.{0} (∑ j, abs.{0} (HSub.hSub.{0, 0, 0} (x j) (c j)))
+          (HMul.hMul.{0, 0, 0}
+            (HDiv.hDiv.{0, 0, 0} (HSub.hSub.{0, 0, 0} (HMul.hMul.{0, 0, 0} 4 ↑k) 1) (HMul.hMul.{0, 0, 0} 4 ↑k)) D)
+Jung.Cut.weight_bound.{u_1, u_2} {V : Type u_1} {I : Type u_2} [Fintype.{u_1} V] [DecidableEq.{u_1 + 1} V]
+  [Fintype.{u_2} I] (p : ℕ) (hp3 : LE.le.{0} 3 p) (hp : Odd.{0} p)
+  (hc : Eq.{1} (Fintype.card.{u_1} V) (HMul.hMul.{0, 0, 0} 2 p)) (S : I → Finset.{u_1} V) (w : I → ℝ)
+  (hw : ∀ (a : I), LE.le.{0} 0 (w a)) (hd : ∀ (i j : V), LE.le.{0} (Jung.Cut.distance.{u_1, u_2} S w i j) 1)
+  (hcount :
+    LE.le.{0} (Finset.card.{u_2} (Jung.Cut.balanced.{u_1, u_2} p S w))
+      (HSub.hSub.{0, 0, 0} (HMul.hMul.{0, 0, 0} 2 p) 1)) :
+  LE.le.{0} (Jung.Cut.objective.{u_1, u_2} S w) (Jung.cutBound ↑p)
+Jung.median_bound {n d p : ℕ} (hp3 : LE.le.{0} 3 p) (hp : Odd.{0} p)
+  (hn : Eq.{1} (HAdd.hAdd.{0, 0, 0} n 1) (HMul.hMul.{0, 0, 0} 2 p))
+  (hd : LE.le.{0} d (HSub.hSub.{0, 0, 0} (HMul.hMul.{0, 0, 0} 2 p) 1))
+  (x : Fin (HAdd.hAdd.{0, 0, 0} n 1) → Jung.Point d)
+  (hdiam : ∀ (i j : Fin (HAdd.hAdd.{0, 0, 0} n 1)), LE.le.{0} (Jung.l1Dist (x i) (x j)) 1) :
+  ∃ m, LE.le.{0} (∑ i, Jung.l1Dist (x i) m) (Jung.cutBound ↑p)
+'Jung.abs_coordinate_sub_le' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.coefficient_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_active_convex_balance' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_active_family' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_common_step' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_distance_le_radius' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_dual_vector' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_form_motion' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_norming_identity' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_radius_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_strict_descent' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_sum_embedding' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contact_weight_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contactActiveVector_mem' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contactActiveVector_spec' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contacts_uniform' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.contactSignVector_isSign' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.continuous_contact_distance' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.continuous_contact_radius' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.continuous_l1Dist_center' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.cut_bound_of_moments' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.cut_bound_strict' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.balanced_sum' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.basic_moments' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.delta_ite' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.double_delta' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.double_product' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.double_quadratic' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.indicator_sum' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.intersection_dot' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.odd_square' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.quadratic_formula' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.quadratic_lower' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.quadratic_upper' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.size_facts' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.sum_switch' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.total_formula' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.vector_sign' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.vector_sum' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Cut.weight_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.enclosing_all_sets_of_unit_finite' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.exists_contact_minimizer' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.finite_enclosing_scaled' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.balanced_card' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.card_shore' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.cut_card' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.cut_delta' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.cut_mem' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.cut_size' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.gap_prefix' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.ordered_median' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.ordered_monotone' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.ordered_pair' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.separation_count' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.step_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.weight_distance' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.weight_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.Gap.weight_objective' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.half_weight_card' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.isClosed_l1_center_constraint' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.isCompact_l1_center_constraint' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.jung_l1_four_k_plus_one' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.jung_l1_four_k_plus_one_all' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.jung_l1_four_k_plus_one_explicit' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.l1Dist_nonneg' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.l1Dist_scale' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.l1Dist_self' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.l1Dist_symm' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.l1Dist_triangle' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.median_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.signDot_add' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.signDot_le_l1Dist' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.signDot_smul' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.signDot_sub' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.sum_contacts_lower_bound' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.uniform_sign_balance' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.unit_finite_enclosing' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
+'Jung.weighted_signDot_zero' depends on axioms: [propext, Classical.choice.{u}, Quot.sound.{u}]
